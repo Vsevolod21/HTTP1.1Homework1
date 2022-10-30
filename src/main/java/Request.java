@@ -1,16 +1,44 @@
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class Request {
-    private final String method;
-    private final String path;
-    private final List<String> headers;
-    private final String body;
+    private String method;
+    private String path;
+    private List<String> headers;
+    private String body;
+    private String query;
+
+
+    public Request(String query) {
+        this.query = query;
+    }
 
     public Request(String method, String path, List<String> headers, String body) {
         this.method = method;
         this.path = path;
         this.headers = headers;
         this.body = body;
+    }
+
+    public void getQueryParam(String query) {
+        List<NameValuePair> nameValuePairs =
+                URLEncodedUtils.parse(query, Charset.defaultCharset());
+        System.out.println("Получаем Query: " + nameValuePairs);
+        System.out.println("\nа теперь извлекаем Query parameters:\n");
+        for (NameValuePair arg : nameValuePairs) {
+            System.out.println("Name: " + arg.getName() + "\n" +
+                    "Value: " + arg.getValue());
+        }
+    }
+
+    public void getQueryParams() {
+    }
+
+    public String getQuery() {
+        return query;
     }
 
     public String getMethod() {
@@ -33,6 +61,7 @@ public class Request {
         return "Метод запроса: " + method + "\n" +
                 "Путь: " + path + "\n" +
                 "Заголовки: " + headers + "\n" +
-                "Тело запроса: " + body;
+                "Тело запроса: " + body + "\n" +
+                "Query: " + query;
     }
 }

@@ -1,8 +1,12 @@
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -42,7 +46,18 @@ public class Server {
 
     private void handleConnection(Socket socket) {
         try (var in = new BufferedInputStream(socket.getInputStream());
-             var out = new BufferedOutputStream(socket.getOutputStream())) {
+             var out = new BufferedOutputStream(socket.getOutputStream());
+             var in1 = new BufferedReader(
+                     new InputStreamReader(socket.getInputStream()))) {
+
+            String requestLineString = in1.readLine();
+            String[] requestLineStringArray = requestLineString.split(" ");
+
+            String[] pathAndQuery = requestLineStringArray[1].split("\\?");
+            String query = pathAndQuery[1];
+
+            Request requestQuery = new Request(query);
+            requestQuery.getQueryParam(query);
 
             System.out.println(Thread.currentThread().getName());
 
@@ -96,7 +111,9 @@ public class Server {
             final var headersBytes = in.readNBytes(headersEnd - headersStart);
             final var headers = Arrays.asList(new String(headersBytes).split("\r\n"));
 
-            final var request = new Request(method, path, headers, null);
+            final var request =
+                    new Request(method, path, headers, null);
+
             System.out.println("Итого получился объект реквест: " + request);
 
             // тело запроса, для GET тела нет

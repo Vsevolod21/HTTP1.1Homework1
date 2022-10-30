@@ -14,6 +14,7 @@ public class Main {
                             "\r\n" +
                             "Hello from my GET!"
             ).getBytes());
+//            request.getQueryParam(request.getQuery());
             out.flush();
         });
 
@@ -29,5 +30,6 @@ public class Main {
         });
 
         server.listen(9999);
+
     }
 }
