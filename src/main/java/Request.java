@@ -16,11 +16,12 @@ public class Request {
         this.query = query;
     }
 
-    public Request(String method, String path, List<String> headers, String body) {
+    public Request(String method, String path, List<String> headers, String body, String query) {
         this.method = method;
         this.path = path;
         this.headers = headers;
         this.body = body;
+        this.query = query;
     }
 
     public void getQueryParam(String query) {
