@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,8 @@ public class Server {
 
     private final ConcurrentHashMap<String, ConcurrentHashMap<String, Handler>>
             allHandlers = new ConcurrentHashMap<String, ConcurrentHashMap<String, Handler>>();
+
+    List<String> bodyList;
 
     public void addHandler(String method, String path, Handler handler) {
         var methodMap = allHandlers.get(method);
@@ -54,6 +57,7 @@ public class Server {
             in.mark(limit);
             final var buffer = new byte[limit];
             final var read = in.read(buffer);
+
             // ищем request line
             final var requestLineDelimiter = new byte[]{'\r', '\n'};
             final var requestLineEnd =
@@ -62,6 +66,7 @@ public class Server {
                 badRequest(out);
                 return;
             }
+
             // читаем request line
             final var requestLine =
                     new String(Arrays.copyOf(buffer, requestLineEnd)).split(" ");
@@ -106,8 +111,28 @@ public class Server {
             final var headersBytes = in.readNBytes(headersEnd - headersStart);
             final var headers = Arrays.asList(new String(headersBytes).split("\r\n"));
 
+            if (headers.contains("Content-Type: application/x-www-form-urlencoded")) {
+                System.out.println("Есть такой Content-Type: application/x-www-form-urlencoded");
+            }
+            // тело запроса, для GET тела нет
+            if (!method.equals("GET")) {
+                if (headers.contains("Content-Type: application/x-www-form-urlencoded")) {
+                    System.out.println("Есть такой Content-Type: application/x-www-form-urlencoded");
+                    in.skip(headersDelimiter.length);
+                    final var contentLength = extractHeader(headers, "Content-Length");
+                    if (contentLength.isPresent()) {
+                        final var length = Integer.parseInt(contentLength.get());
+                        final var bodyBytes = in.readNBytes(length);
+                        final var body = new String(bodyBytes);
+                        System.out.println("А вот и тело: " + body);
+                        String[] bodyArray = body.split("&");
+                        bodyList = new ArrayList<>(Arrays.asList(bodyArray));
+                    }
+                }
+            }
+
             final var request =
-                    new Request(method, pathClear, headers, null, query);
+                    new Request(method, pathClear, headers, bodyList, query);
 
             System.out.println("Итого получился объект реквест: " + request);
 
@@ -115,18 +140,7 @@ public class Server {
 
             System.out.println("\nСписок из метода request.getQueryParams(): " + request.getQueryParams());
 
-            // тело запроса, для GET тела нет
-            if (!method.equals("GET")) {
-                in.skip(headersDelimiter.length);
-                final var contentLength = extractHeader(headers, "Content-Length");
-                if (contentLength.isPresent()) {
-                    final var length = Integer.parseInt(contentLength.get());
-                    final var bodyBytes = in.readNBytes(length);
-                    final var body = new String(bodyBytes);
-                    System.out.println(body);
-                }
-            }
-
+            System.out.println("\nСписок параметров из формочки: " + request.getPostParams());
             var methodMap =
                     allHandlers.get(request.getMethod());
             System.out.println("мапа методмап: " + methodMap);

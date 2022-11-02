@@ -3,20 +3,21 @@ import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Request {
-    private String method;
-    private String path;
-    private List<String> headers;
-    private String body;
-    private String query;
+    private final String method;
+    private final String path;
+    private final List<String> headers;
+    private final List<String> bodyList;
+    private final String query;
 
-    public Request(String method, String path, List<String> headers, String body, String query) {
+    public Request(String method, String path, List<String> headers, List<String> bodyList, String query) {
         this.method = method;
         this.path = path;
         this.headers = headers;
-        this.body = body;
+        this.bodyList = bodyList;
         this.query = query;
     }
 
@@ -42,6 +43,15 @@ public class Request {
         return queryList;
     }
 
+    public List<String> getPostParams() {
+        List<String> postParams = new ArrayList<>();
+        for (int i = 0; i < bodyList.size() - 1; i++) {
+            String[] pair = bodyList.get(i).split("=");
+            postParams.addAll(Arrays.asList(pair));
+        }
+        return postParams;
+    }
+
     public String getQuery() {
         return query;
     }
@@ -58,15 +68,15 @@ public class Request {
         return headers;
     }
 
-    public String getBody() {
-        return body;
+    public List<String> getBody() {
+        return bodyList;
     }
 
     public String toString() {
         return "Метод запроса: " + method + "\n" +
                 "Путь: " + path + "\n" +
                 "Заголовки: " + headers + "\n" +
-                "Тело запроса: " + body + "\n" +
+                "Тело запроса: " + bodyList + "\n" +
                 "Query: " + query;
     }
 }
