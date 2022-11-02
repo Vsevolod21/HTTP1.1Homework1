@@ -87,6 +87,9 @@ public class Server {
             String[] pathAndQuery = path.split("\\?");
             String query = pathAndQuery[1];
 
+            final var pathClear = pathAndQuery[0];
+            System.out.println(pathClear);
+
             // заголовки
             final var headersDelimiter = new byte[]{'\r', '\n', '\r', '\n'};
             final var headersStart = requestLineEnd + headersDelimiter.length;
@@ -104,11 +107,13 @@ public class Server {
             final var headers = Arrays.asList(new String(headersBytes).split("\r\n"));
 
             final var request =
-                    new Request(method, path, headers, null, query);
+                    new Request(method, pathClear, headers, null, query);
 
             System.out.println("Итого получился объект реквест: " + request);
 
-            request.getQueryParam(query);
+            request.getQueryParam(request.getQuery());
+
+            System.out.println("\nСписок из метода request.getQueryParams(): " + request.getQueryParams());
 
             // тело запроса, для GET тела нет
             if (!method.equals("GET")) {

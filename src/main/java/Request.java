@@ -2,6 +2,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Request {
@@ -10,11 +11,6 @@ public class Request {
     private List<String> headers;
     private String body;
     private String query;
-
-
-    public Request(String query) {
-        this.query = query;
-    }
 
     public Request(String method, String path, List<String> headers, String body, String query) {
         this.method = method;
@@ -35,7 +31,15 @@ public class Request {
         }
     }
 
-    public void getQueryParams() {
+    public List<String> getQueryParams() {
+        List<String> queryList = new ArrayList<>();
+        List<NameValuePair> nameValuePairs =
+                URLEncodedUtils.parse(query, Charset.defaultCharset());
+        for (NameValuePair arg : nameValuePairs) {
+            queryList.add(arg.getName());
+            queryList.add(arg.getValue());
+        }
+        return queryList;
     }
 
     public String getQuery() {
